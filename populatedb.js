@@ -46,15 +46,18 @@ async function userCreate(index, username, password, first_name, last_name) {
   console.log(`Added user: ${first_name} ${last_name}`);
 }
 
-async function conversationCreate(index, users) {
+async function conversationCreate(index, user1, user2) {
   const conversationdetail = {
-    users: users,
+    user1: user1,
+    user2: user2,
   };
 
   const conversation = new Conversation(conversationdetail);
   await conversation.save();
   conversations[index] = conversation;
-  console.log(`Added conversation: ${users}`);
+  console.log(
+    `Added conversation between user ${user1.username} and user ${user2.username}`
+  );
 }
 
 async function messageCreate(index, author, conversation, timestamp, text) {
