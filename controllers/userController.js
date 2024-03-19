@@ -3,7 +3,11 @@ const Conversation = require("../models/conversation");
 const Message = require("../models/message");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
+const bcrypt = require("bcryptjs");
+const passport = require("passport");
+const jwt = require("jsonwebtoken");
 
+// Welcome page with counts of users, conversations and messages
 exports.index = asyncHandler(async (req, res, next) => {
   const [numUsers, numConversations, numMessages] = await Promise.all([
     User.countDocuments({}).exec(),
@@ -38,7 +42,7 @@ exports.user_detail = asyncHandler(async (req, res, next) => {
   res.json(user);
 });
 
-// Handle User create on POST
+// Handle User signup on POST
 exports.user_create_post = [
   body("username", "Username is not valid")
     .trim()
@@ -49,8 +53,16 @@ exports.user_create_post = [
     "Password must contain at least 8 characters (At least one uppercase letter, one lowercase letter and one number"
   )
     .trim()
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/)
     .isLength({ min: 8 })
     .escape(),
+  body("password_confirm").custom(async (password_confirm, { req }) => {
+    const password = req.body.password;
+    // If passwords do not match throw error
+    if (password !== password_confirm) {
+      throw new Error("Passwords do not match");
+    }
+  }),
   body("first_name", "First name is not valid")
     .trim()
     .isLength({ min: 1, max: 100 })
@@ -62,31 +74,72 @@ exports.user_create_post = [
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
     // Create User with validated and sanitised data
-    const user = new User({
-      username: req.body.username,
-      password: req.body.password,
-      first_name: req.body.first_name,
-      last_name: req.body.last_name,
-    });
     if (!errors.isEmpty()) {
       res.json({ error: errors.array() });
       return;
     } else {
-      const userExists = await User.findOne({
-        username: req.body.username,
-      }).exec();
-      if (userExists) {
-        res.json({ error: "Username already in use" });
-      } else {
-        await user.save();
-        res.json({
-          status: "Sign up successful",
-          user: user,
-        });
-      }
+      bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
+        if (err) {
+          res.json({ error: err });
+          return;
+        } else {
+          const user = new User({
+            username: req.body.username,
+            password: hashedPassword,
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+          });
+          const userExists = await User.findOne({
+            username: req.body.username,
+          }).exec();
+          if (userExists) {
+            res.json({ error: "Username already in use" });
+          } else {
+            await user.save();
+            res.json({
+              status: "Sign up successful",
+              user: user,
+            });
+          }
+        }
+      });
     }
   }),
 ];
+
+//Handle User login on POST
+exports.user_login_post = asyncHandler(async (req, res, next) => {
+  passport.authenticate("login", async (err, user, info) => {
+    try {
+      if (err || !user) {
+        const error = new Error("An error occurred");
+        return next(error);
+      }
+      req.login(user, { session: false }, async (error) => {
+        if (error) return next(error);
+        const body = {
+          _id: user._id,
+          username: user.username,
+          password: user.password,
+        };
+        const token = jwt.sign({ user: body }, "TOP_SECRET");
+        return res.json({ token: token, user: user });
+      });
+    } catch (error) {
+      return next(error);
+    }
+  })(req, res, next);
+});
+
+// Handle User logout on GET
+exports.user_logout_get = (req, res, next) => {
+  req.logout((err) => {
+    if (err) {
+      return next(err);
+    }
+    res.json({ message: "You are now logged out" });
+  });
+};
 
 // Handle User delete on DELETE
 exports.user_delete = asyncHandler(async (req, res, next) => {

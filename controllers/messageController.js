@@ -4,10 +4,10 @@ const Message = require("../models/message");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 
-// Send a list of all Messages
+// Send a list of all Messages in a conversation
 exports.message_list = asyncHandler(async (req, res, next) => {
   const allMessages = await Message.find(
-    {},
+    { conversation: req.params.conversationid },
     "author conversation timestamp_formatted text"
   )
     .populate("author")
@@ -45,7 +45,7 @@ exports.message_create_post = [
     const errors = validationResult(req);
     const message = new Message({
       author: req.body.author,
-      conversation: req.body.conversation,
+      conversation: req.params.conversationid,
       timestamp: Date.now(),
       text: req.body.text,
     });

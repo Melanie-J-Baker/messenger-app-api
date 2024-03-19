@@ -4,13 +4,23 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
 const compression = require("compression");
+const cors = require("cors");
 const helmet = require("helmet");
 const RateLimit = require("express-rate-limit");
+const dotenv = require("dotenv");
+const passport = require("passport");
+require("./auth/auth");
+
+// get config vars
+dotenv.config();
 
 const indexRouter = require("./routes/index");
 const messengerRouter = require("./routes/messenger");
 
 const app = express();
+
+//let cache = apicache.middleware;
+//app.use(cache("10 minutes")); // cache results for 5 mins
 
 // Set up rate limiter: max of 20 reqs per min
 const limiter = RateLimit({
@@ -38,6 +48,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+app.use(passport.initialize());
+app.use(cors());
+
+// enable CORS pre-flight
+app.options("*", cors());
 
 app.use("/", indexRouter);
 app.use("/messenger", messengerRouter);
@@ -53,9 +68,12 @@ app.use(function (err, req, res, next) {
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  // render the error page
+  // Send error object
   res.status(err.status || 500);
-  res.render("error");
+  res.json({
+    message: err.message,
+    error: err,
+  });
 });
 
 module.exports = app;
