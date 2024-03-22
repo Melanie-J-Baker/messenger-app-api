@@ -1,4 +1,5 @@
 const createError = require("http-errors");
+const session = require("express-session");
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
@@ -25,7 +26,7 @@ const app = express();
 // Set up rate limiter: max of 20 reqs per min
 const limiter = RateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max: 20,
+  max: 40,
 });
 
 // mongoose setup
@@ -48,9 +49,28 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-app.use(passport.initialize());
-app.use(cors());
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    httpOnly: true,
+  },
+};
 
+app.set("trust proxy", 1); // trust first proxy
+app.use(session(sessionConfig));
+app.use(passport.initialize());
+app.use(passport.session());
+
+const corsOptions = {
+  origin: "http://localhost:5173",
+  optionsSuccessStatus: 200,
+  credentials: true,
+};
+app.use(cors(corsOptions));
 // enable CORS pre-flight
 app.options("*", cors());
 

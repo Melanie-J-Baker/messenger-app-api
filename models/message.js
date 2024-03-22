@@ -19,10 +19,14 @@ MessageSchema.virtual("url").get(function () {
   return `messenger/message/${this._id}`;
 });
 
-MessageSchema.virtual("timestamp_formatted").get(function () {
+MessageSchema.virtual("time_formatted").get(function () {
   return DateTime.fromJSDate(this.timestamp).toLocaleString(
-    DateTime.DATETIME_MED
+    DateTime.TIME_24_SIMPLE
   );
+});
+
+MessageSchema.virtual("date_formatted").get(function () {
+  return DateTime.fromJSDate(this.timestamp).toLocaleString(DateTime.DATE_MED);
 });
 
 module.exports = mongoose.model("Message", MessageSchema);

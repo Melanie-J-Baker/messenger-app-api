@@ -25,9 +25,9 @@ exports.index = asyncHandler(async (req, res, next) => {
 exports.user_list = asyncHandler(async (req, res, next) => {
   const allUsers = await User.find(
     {},
-    "username first_name last_name full_name"
+    "_id username first_name last_name full_name"
   )
-    .sort({ last_name: 1 })
+    .sort({ username: 1 })
     .exec();
   res.json(allUsers);
 });
@@ -112,7 +112,7 @@ exports.user_login_post = asyncHandler(async (req, res, next) => {
   passport.authenticate("login", async (err, user, info) => {
     try {
       if (err || !user) {
-        const error = new Error("An error occurred");
+        const error = new Error(err);
         return next(error);
       }
       req.login(user, { session: false }, async (error) => {
@@ -126,17 +126,22 @@ exports.user_login_post = asyncHandler(async (req, res, next) => {
         return res.json({ token: token, user: user });
       });
     } catch (error) {
-      return next(error);
+      return res.json(error);
     }
   })(req, res, next);
 });
 
-// Handle User logout on GET
-exports.user_logout_get = (req, res, next) => {
+// Handle User logout on POST
+exports.user_logout_post = (req, res, next) => {
+  res.clearCookie("connect.sid"); // clear the session cookie
   req.logout((err) => {
     if (err) {
       return next(err);
     }
+    req.session.destroy(function (err) {
+      // destroy the session
+      res.send(); // send to the client
+    });
     res.json({ message: "You are now logged out" });
   });
 };

@@ -45,7 +45,7 @@ exports.conversation_create_post = asyncHandler(async (req, res, next) => {
       { user1: user2, user2: user1 },
     ],
   }).exec();
-  if (conversationExists == null) {
+  if (!conversationExists || user1 !== "" || user2 !== "") {
     const conversation = new Conversation({
       user1: user1,
       user2: user2,

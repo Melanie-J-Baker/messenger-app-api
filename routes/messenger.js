@@ -44,8 +44,8 @@ router.put(
   user_controller.user_update_put
 );
 
-// GET request to logout User
-router.get("/users/logout", user_controller.user_logout_get);
+// POST request to logout User
+router.post("/users/logout", user_controller.user_logout_post);
 
 // CONVERSATION ROUTES
 
