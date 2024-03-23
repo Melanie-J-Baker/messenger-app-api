@@ -10,14 +10,16 @@ passport.use(
     {
       usernameField: "username",
       passwordField: "password",
+      passReqToCallback: true,
     },
-    async (username, password, done) => {
+    async (req, username, password, done) => {
       try {
         const user = await User.create({
           username,
           password,
+          first_name: req.body.first_name,
+          last_name: req.body.last_name,
         });
-
         return done(null, user);
       } catch (error) {
         done(error);

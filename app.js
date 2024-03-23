@@ -32,9 +32,9 @@ const limiter = RateLimit({
 // mongoose setup
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
-const dev_db_url =
-  "mongodb+srv://bakermel:P9Y6lWc9PgCgIK3O@cluster0.ecsu2h1.mongodb.net/messaging-app-api-dev?retryWrites=true&w=majority&appName=Cluster0";
-const mongoDB = process.env.MONGODB_URI || dev_db_url;
+//const dev_db_url =
+//"mongodb+srv://bakermel:P9Y6lWc9PgCgIK3O@cluster0.ecsu2h1.mongodb.net/messaging-app-api-dev?retryWrites=true&w=majority&appName=Cluster0";
+const mongoDB = process.env.MONGODB_URI; // || dev_db_url;
 
 main().catch((err) => console.log(err));
 async function main() {

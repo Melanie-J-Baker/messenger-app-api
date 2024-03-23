@@ -25,7 +25,11 @@ router.get(
 );
 
 // POST route to signup user
-router.post("/users/signup", user_controller.user_create_post);
+router.post(
+  "/users/signup",
+  passport.authenticate("signup", { session: false }),
+  user_controller.user_create_post
+);
 
 //POST route to login user
 router.post("/users/login", user_controller.user_login_post);

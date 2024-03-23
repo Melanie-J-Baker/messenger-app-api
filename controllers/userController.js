@@ -89,18 +89,18 @@ exports.user_create_post = [
             first_name: req.body.first_name,
             last_name: req.body.last_name,
           });
-          const userExists = await User.findOne({
-            username: req.body.username,
-          }).exec();
-          if (userExists) {
-            res.json({ error: "Username already in use" });
-          } else {
-            await user.save();
-            res.json({
-              status: "Sign up successful",
-              user: user,
-            });
-          }
+          //const userExists = await User.findOne({
+          //username: req.body.username,
+          //}).exec();
+          //if (userExists) {
+          //res.json({ error: "Username already in use" });
+          //} else {
+          await user.save();
+          res.json({
+            status: "Sign up successful",
+            user: user,
+          });
+          //}
         }
       });
     }
@@ -112,7 +112,7 @@ exports.user_login_post = asyncHandler(async (req, res, next) => {
   passport.authenticate("login", async (err, user, info) => {
     try {
       if (err || !user) {
-        const error = new Error(err);
+        const error = new Error("An error occurred");
         return next(error);
       }
       req.login(user, { session: false }, async (error) => {
@@ -120,13 +120,12 @@ exports.user_login_post = asyncHandler(async (req, res, next) => {
         const body = {
           _id: user._id,
           username: user.username,
-          password: user.password,
         };
         const token = jwt.sign({ user: body }, "TOP_SECRET");
         return res.json({ token: token, user: user });
       });
     } catch (error) {
-      return res.json(error);
+      return next(error);
     }
   })(req, res, next);
 });
