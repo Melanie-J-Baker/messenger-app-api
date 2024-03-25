@@ -37,8 +37,7 @@ exports.message_create_post = [
     .escape(),
   body("text", "Message must not be empty or more than 500000 characters")
     .trim()
-    .isLength({ min: 1, max: 500000 })
-    .escape(),
+    .isLength({ min: 1, max: 500000 }),
   // Process request after validation and sanitization
   asyncHandler(async (req, res, next) => {
     // Extract validation errors from request

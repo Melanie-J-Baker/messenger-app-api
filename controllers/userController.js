@@ -121,7 +121,9 @@ exports.user_login_post = asyncHandler(async (req, res, next) => {
           _id: user._id,
           username: user.username,
         };
-        const token = jwt.sign({ user: body }, "TOP_SECRET");
+        const token = jwt.sign({ user: body }, "TOP_SECRET", {
+          expiresIn: "2h",
+        });
         return res.json({ token: token, user: user });
       });
     } catch (error) {
@@ -161,12 +163,12 @@ exports.user_delete = asyncHandler(async (req, res, next) => {
   if (user === null) {
     res.json({ error: "User not found" });
   }
-  if (allConversations.length > 0) {
+  if (allConversations) {
     await Conversation.deleteMany(
       { user1: req.params.id } || { user2: req.params.id }
     ).exec();
   }
-  if (allMessagesInConversations.length > 0) {
+  if (allMessagesInConversations) {
     allConversations.forEach(async (conversation) => {
       await Message.deleteMany({ conversation: conversation._id }).exec();
     });
