@@ -89,12 +89,12 @@ exports.user_create_post = [
             first_name: req.body.first_name,
             last_name: req.body.last_name,
           });
-          //const userExists = await User.findOne({
-          //username: req.body.username,
-          //}).exec();
-          //if (userExists) {
-          //res.json({ error: "Username already in use" });
-          //} else {
+          const userExists = await User.findOne({
+            username: req.body.username,
+          }).exec();
+          if (userExists) {
+            res.json({ error: "Username already in use" });
+          } else {
           await user.save();
           res.json({
             status: "Sign up successful",
@@ -207,29 +207,35 @@ exports.user_update_put = asyncHandler(async (req, res, next) => {
     asyncHandler(async (req, res, next) => {
       const errors = validationResult(req);
       // Create User with validated and sanitised data
-      const user = new User({
-        username: req.body.username,
-        password: req.body.password,
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        _id: req.params.id, // Required to update user and not create new
-      });
       if (!errors.isEmpty()) {
         res.json({ error: errors.array() });
         return;
       } else {
-        const userExists = await User.findOne({
-          username: req.body.username,
-        }).exec();
-        if (userExists) {
-          res.json({ error: "New username already in use" });
-        } else {
-          await User.findByIdAndUpdate(req.params.id, user, {});
-          res.json({
-            status: "User details updated successfully",
-            user: user,
-          });
-        }
+        bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => { 
+          if (err) {
+            res.json({err: err})
+          } else {
+            const user = new User({
+              username: req.body.username,
+              password: req.body.password,
+              first_name: req.body.first_name,
+              last_name: req.body.last_name,
+              _id: req.params.id, // Required to update user and not create new
+            });
+            const userExists = await User.findOne({
+              username: req.body.username,
+            }).exec();
+            if (userExists) {
+              res.json({ error: "New username already in use" });
+            } else {
+              await User.findByIdAndUpdate(req.params.id, user, {});
+              res.json({
+                status: "User details updated successfully",
+                user: user,
+              });
+            } 
+          }
+        })
       }
     }),
   ];
