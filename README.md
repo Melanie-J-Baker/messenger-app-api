@@ -6,6 +6,6 @@ This project involved building a web app that allows users to send messages to e
 
 At a minimum, the app was expected to include the following core functionality:
 
-Authorization
-Sending messages to another user
-Customizing a user profile
+- Authorization
+- Sending messages to another user
+- Customizing a user profile
