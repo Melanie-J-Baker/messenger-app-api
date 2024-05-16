@@ -1,11 +1,9 @@
-const User = require("../models/user");
-const Conversation = require("../models/conversation");
 const Message = require("../models/message");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
 
 // Send a list of all Messages in a conversation
-exports.message_list = asyncHandler(async (req, res, next) => {
+exports.message_list = asyncHandler(async (req, res) => {
   const allMessages = await Message.find(
     { conversation: req.params.conversationid },
     "author conversation timestamp_formatted text"
@@ -39,7 +37,7 @@ exports.message_create_post = [
     .trim()
     .isLength({ min: 1, max: 500000 }),
   // Process request after validation and sanitization
-  asyncHandler(async (req, res, next) => {
+  asyncHandler(async (req, res) => {
     // Extract validation errors from request
     const errors = validationResult(req);
     const message = new Message({
@@ -61,14 +59,14 @@ exports.message_create_post = [
 ];
 
 // Handle Message delete on DELETE
-exports.message_delete = asyncHandler(async (req, res, next) => {
+exports.message_delete = asyncHandler(async (req, res) => {
   const message = await Message.findById(req.params.id).exec();
   if (message === null) {
     res.json({ error: "Message not found" });
   }
   await Message.findByIdAndDelete(req.params.id).exec();
   res.json({
-    message: "Message deleted",
+    status: "Message deleted",
     message: message,
   });
 });
@@ -84,7 +82,7 @@ exports.message_update_put = [
     .isLength({ min: 1, max: 500000 })
     .escape(),
   // Process request after validation and sanitization
-  asyncHandler(async (req, res, next) => {
+  asyncHandler(async (req, res) => {
     // Extract validation errors from request
     const errors = validationResult(req);
     const message = new Message({

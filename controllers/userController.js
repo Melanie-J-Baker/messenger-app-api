@@ -8,7 +8,7 @@ const passport = require("passport");
 const jwt = require("jsonwebtoken");
 
 // Welcome page with counts of users, conversations and messages
-exports.index = asyncHandler(async (req, res, next) => {
+exports.index = asyncHandler(async (req, res) => {
   const [numUsers, numConversations, numMessages] = await Promise.all([
     User.countDocuments({}).exec(),
     Conversation.countDocuments({}).exec(),
@@ -22,7 +22,7 @@ exports.index = asyncHandler(async (req, res, next) => {
 });
 
 // Send a list of all Users
-exports.user_list = asyncHandler(async (req, res, next) => {
+exports.user_list = asyncHandler(async (req, res) => {
   const allUsers = await User.find(
     {},
     "_id username first_name last_name full_name"
@@ -34,7 +34,7 @@ exports.user_list = asyncHandler(async (req, res, next) => {
 
 // Send details for a specific User
 exports.user_detail = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.params.id).exec();
+  const user = await User.findById(req.params.userid).exec();
   if (user === null) {
     res.json({ error: "User not found" });
     return next(err);
@@ -71,7 +71,7 @@ exports.user_create_post = [
     .trim()
     .isLength({ min: 1, max: 100 })
     .escape(),
-  asyncHandler(async (req, res, next) => {
+  asyncHandler(async (req, res) => {
     const errors = validationResult(req);
     // Create User with validated and sanitised data
     if (!errors.isEmpty()) {
@@ -95,12 +95,12 @@ exports.user_create_post = [
           if (userExists) {
             res.json({ error: "Username already in use" });
           } else {
-          await user.save();
-          res.json({
-            status: "Sign up successful",
-            user: user,
-          });
-          //}
+            await user.save();
+            res.json({
+              status: "Sign up successful",
+              user: user,
+            });
+          }
         }
       });
     }
@@ -148,7 +148,7 @@ exports.user_logout_post = (req, res, next) => {
 };
 
 // Handle User delete on DELETE
-exports.user_delete = asyncHandler(async (req, res, next) => {
+exports.user_delete = asyncHandler(async (req, res) => {
   const [user, allConversations] = await Promise.all([
     User.findById(req.params.id).exec(),
     Conversation.find(
@@ -204,16 +204,16 @@ exports.user_update_put = asyncHandler(async (req, res, next) => {
       .trim()
       .isLength({ min: 1, max: 100 })
       .escape(),
-    asyncHandler(async (req, res, next) => {
+    asyncHandler(async (req, res) => {
       const errors = validationResult(req);
       // Create User with validated and sanitised data
       if (!errors.isEmpty()) {
         res.json({ error: errors.array() });
         return;
       } else {
-        bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => { 
+        bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
           if (err) {
-            res.json({err: err})
+            res.json({ err: err });
           } else {
             const user = new User({
               username: req.body.username,
@@ -233,9 +233,9 @@ exports.user_update_put = asyncHandler(async (req, res, next) => {
                 status: "User details updated successfully",
                 user: user,
               });
-            } 
+            }
           }
-        })
+        });
       }
     }),
   ];

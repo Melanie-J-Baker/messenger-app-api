@@ -19,7 +19,7 @@ router.get(
 
 // GET one user
 router.get(
-  "/users/:id",
+  "/users/:userid",
   passport.authenticate("jwt", { session: false }),
   user_controller.user_detail
 );
