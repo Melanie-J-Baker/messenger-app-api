@@ -8,7 +8,7 @@ const passport = require("passport");
 const jwt = require("jsonwebtoken");
 
 // Welcome page with counts of users, conversations and messages
-exports.index = asyncHandler(async (req, res) => {
+exports.index = asyncHandler(async (req, res, next) => {
   const [numUsers, numConversations, numMessages] = await Promise.all([
     User.countDocuments({}).exec(),
     Conversation.countDocuments({}).exec(),
@@ -22,7 +22,7 @@ exports.index = asyncHandler(async (req, res) => {
 });
 
 // Send a list of all Users
-exports.user_list = asyncHandler(async (req, res) => {
+exports.user_list = asyncHandler(async (req, res, next) => {
   const allUsers = await User.find(
     {},
     "_id username first_name last_name full_name"
@@ -71,7 +71,7 @@ exports.user_create_post = [
     .trim()
     .isLength({ min: 1, max: 100 })
     .escape(),
-  asyncHandler(async (req, res) => {
+  asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
     // Create User with validated and sanitised data
     if (!errors.isEmpty()) {
@@ -204,7 +204,7 @@ exports.user_update_put = asyncHandler(async (req, res, next) => {
       .trim()
       .isLength({ min: 1, max: 100 })
       .escape(),
-    asyncHandler(async (req, res) => {
+    asyncHandler(async (req, res, next) => {
       const errors = validationResult(req);
       // Create User with validated and sanitised data
       if (!errors.isEmpty()) {

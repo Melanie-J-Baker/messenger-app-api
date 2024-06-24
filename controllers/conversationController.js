@@ -3,7 +3,7 @@ const Message = require("../models/message");
 const asyncHandler = require("express-async-handler");
 
 // Send a list of all Conversations
-exports.conversation_list = asyncHandler(async (req, res) => {
+exports.conversation_list = asyncHandler(async (req, res, next) => {
   const allConversations = await Conversation.find({
     $or: [{ user1: req.params.userid }, { user2: req.params.userid }],
   })
@@ -36,7 +36,7 @@ exports.conversation_detail = asyncHandler(async (req, res, next) => {
 });
 
 // Handle conversation create on POST
-exports.conversation_create_post = asyncHandler(async (req, res) => {
+exports.conversation_create_post = asyncHandler(async (req, res, next) => {
   const user1 = req.body.user1;
   const user2 = req.body.user2;
   const conversationExists = await Conversation.findOne({
@@ -64,7 +64,7 @@ exports.conversation_create_post = asyncHandler(async (req, res) => {
 });
 
 // Handle conversation delete on DELETE
-exports.conversation_delete = asyncHandler(async (req, res) => {
+exports.conversation_delete = asyncHandler(async (req, res, next) => {
   const [conversation, allMessagesInConversation] = await Promise.all([
     Conversation.findById(req.params.id).exec(),
     Message.find({ conversation: req.params.id }).exec(),
@@ -84,7 +84,7 @@ exports.conversation_delete = asyncHandler(async (req, res) => {
 });
 
 // Handle conversation update on PUT
-exports.conversation_update_put = asyncHandler(async (req, res) => {
+exports.conversation_update_put = asyncHandler(async (req, res, next) => {
   const conversation = new Conversation({
     user1: req.params.userid,
     user2: req.body.user2,
